@@ -2,30 +2,25 @@ pipeline {
     agent any
     
     environment {
-        TF_VERSION = "1.8.3" // Replace with your desired Terraform version
         AWS_CREDENTIALS = credentials('AWS_Cred')
-        AWS_REGION = "us-east-1" // Replace with your AWS region
-    }
-
-    tools {
-        // Use the Terraform installation defined in Global Tool Configuration
-        terraform "Terraform"
+        AWS_DEFAULT_REGION    = 'us-east-1'  // Replace with your AWS region
     }
     
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/PraveenKumar0796/First_project.git'
-                git checkout 'main'
-
+                script {
+                    // Checkout code from GitHub repository
+                    git branch: 'main', url: 'https://github.com/PraveenKumar0796/Terraform.git'
+                }
             }
         }
         
         stage('Terraform Init') {
             steps {
                 script {
-                    // Initialize Terraform
-                    sh 'terraform init -backend-config="bucket=terraform0123tf" -backend-config="key=terraform.tfstate" -backend-config="region=us-east-1"'
+                    // Initialize Terraform (install plugins, modules, etc.)
+                    bat 'terraform init -input=false'
                 }
             }
         }
@@ -33,8 +28,8 @@ pipeline {
         stage('Terraform Plan') {
             steps {
                 script {
-                    // Generate Terraform plan
-                    sh 'terraform plan -out=tfplan'
+                    // Generate and show Terraform plan
+                    bat 'terraform plan -out=tfplan -input=false -lock=false'
                 }
             }
         }
@@ -42,8 +37,17 @@ pipeline {
         stage('Terraform Apply') {
             steps {
                 script {
-                    // Apply Terraform changes
-                    sh 'terraform apply -auto-approve tfplan'
+                    // Apply Terraform changes (auto-approve for non-interactive execution)
+                    bat 'terraform apply -input=false -lock=false -auto-approve tfplan'
+                }
+            }
+        }
+        
+         stage('Terraform Destroy') {
+            steps {
+                script {
+                    // Apply Terraform changes (auto-approve for non-interactive execution)
+                    bat 'terraform destroy -input=false -lock=false -auto-approve'
                 }
             }
         }
@@ -51,8 +55,11 @@ pipeline {
     
     post {
         always {
-            // Clean up temporary files if needed
-            echo 'Always executing cleanup...'
+            // Clean up Terraform files and directories if needed
+            cleanWs()
         }
     }
 }
+}
+
+
