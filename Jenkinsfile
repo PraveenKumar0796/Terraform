@@ -43,15 +43,15 @@ pipeline {
             }
         }
         
-         stage('Terraform Destroy') {
+         //stage('Terraform Destroy') {
             steps {
                 script {
                     // Apply Terraform changes (auto-approve for non-interactive execution)
                     bat 'terraform destroy -input=false -lock=false -auto-approve'
                 }
             }
-        }
-    }
+        }//
+}
     
     post {
         always {
